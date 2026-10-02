@@ -1,0 +1,243 @@
+Backlog ID,Title,Spike,Objective,Description,Checklist,Depends On,Acceptance,Evidence,Expected Result,Priority,Size,Platform,Conditional (Y/N),Blocked Reason,Status,Ambiguity Type,Ambiguity Status,Evidence State,Verification Mode,Blocker Type
+"S00.0.01","Entornos y estructura de evidencia","S00.0","Disponer de ambas plataformas y un registro reproducible.","Inventariar el hardware y el SO de cada plataforma y crear el árbol de evidencia con una plantilla. El responsable de decisión de backlog es el usuario. Vocabulario operativo: APROBADO = todos los requisitos [E] aplicables satisfechos y no quedan TBD que afecten al requisito; APROBADO CON LIMITACIONES = todos los [E] satisfechos, con limitaciones explícitas, acotadas y aceptadas en el informe; RECHAZADO = al menos un requisito [E] aplicable no satisfecho; BLOCKED = no existe evidencia necesaria por falta de una plataforma, entrada o prerrequisito, y no constituye por sí mismo un veredicto técnico sobre el candidato.","[ ] inventario Linux (distro, kernel, X11/Wayland, CPU, GPU, monitor/Hz, layouts, filesystem real del producto)
+[ ] inventario Windows (versión, CPU, GPU, monitor/Hz, layouts, filesystem real del producto)
+[ ] registrar FS reales del producto; si no están definidos, marcar [TBD]
+[ ] crear evidence/env, evidence/s00_1 … evidence/s00_4
+[ ] plantilla env.md
+[ ] registrar que el responsable de decisión es el usuario","—","env.md por plataforma; árbol creado. El glosario de veredictos queda registrado y es aplicable a todos los informes.","evidence/env/.md","Entornos documentados. Si falta una plataforma, las tareas de esa plataforma quedan BLOCKED. Los informes no inventan un veredicto cuando falta evidencia obligatoria.","P0","XS","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales, las tareas de esa plataforma quedan BLOCKED. No usar BLOCKED como sinónimo de RECHAZADO.","Backlog","Evidence","Open","Not Started","Inspection","Platform"
+
+"S00.1.01","Fijar candidatos y versiones","S00.1","Congelar qué se prueba.","PDFium y MuPDF; Poppler solo como contingencia. La versión exacta es [TBD] hasta iniciar (regla [R]: último release estable disponible al inicio, sin actualizar durante el spike).","[ ] registrar tag, commit, URL y SHA-256 del artefacto por motor
+[ ] registrar configuración de build (args/flags)
+[ ] anotar el compilador
+[ ] registrar origen del artefacto: fuente o binario precompilado","S00.0.01","versions.md completo; fuentes verificadas por hash.","evidence/s00_1/versions.md","Candidatos congelados.","P0","S","Cross-platform","N","","Backlog","None","N/A","Not Started","Documentation","None"
+
+"S00.1.02","Corpus generado C01–C10","S00.1","PDFs con verdad de terreno.","C01 una columna (texto fuente conocido); C02 dos columnas; C03 imágenes y vectores; C04 páginas de tamaños distintos; C05 /Rotate (solo observación); C06 acentos y combinantes (e + U+0301); C07 escaneado sin texto; C08 cifrado; C09 corrupto/truncado; C10 0 páginas o inconsistente.","[ ] generar o construir cada PDF
+[ ] manifest con SHA-256 y propósito
+[ ] texto fuente de C01 guardado","S00.0.01","10 PDFs y el manifest.","evidence/s00_1/corpus/","Corpus base.","P0","M","Cross-platform","N","","Backlog","Evidence","Open","Not Started","Build","None"
+
+"S00.1.03","Corpus C11 (real) y C12 (largo)","S00.1","Incluir casos reales.","C11 lo aporta el usuario; el tamaño de C12 es [TBD].","[ ] recibir C11
+[ ] definir y obtener C12
+[ ] añadir al manifest","S00.1.02","Ambos PDFs en el manifest.","Manifest actualizado (evidence/s00_1/corpus/)","Corpus completo. Si no llega C11, BLOCKED solo para esa comprobación.","P0","S","Cross-platform","N","Bloqueador real: requiere el PDF real C11 aportado por el usuario (bloquea solo las comprobaciones con C11).","Backlog","Evidence","Open","Blocked","Manual Observation","Missing Input"
+
+"S00.1.04","Oráculo y verdad de terreno","S00.1","Referencia independiente de los motores.","Generar la referencia de páginas, cajas, palabras y líneas. La independencia es respecto de PDFium y MuPDF; si Poppler se activa, el informe debe declarar la posible circularidad de cualquier utilidad de Poppler usada como oráculo.","[ ] pdfinfo -box para todos
+[ ] pdftotext -bbox-layout para C01, C02, C11
+[ ] normalizar a origen superior izquierdo, Y hacia abajo [E §10.1]
+[ ] guardar JSON de referencia
+[ ] si Poppler se activa, marcar explícitamente cualquier componente Poppler usado por el oráculo","S00.1.02","Referencia reproducible por script y con sus dependencias declaradas.","evidence/s00_1/oracle/","Verdad de terreno documentada con independencia o limitación de independencia explícita.","P0","S","Cross-platform","N","","Backlog","Evidence","Open","Not Started","Comparison","None"
+
+"S00.1.05","PDFium: build, abrir, render, dimensiones","S00.1","Humo del motor (comprobaciones 1–4).","Probe CLI mínimo de spike, no producto, escrito en C++ y consumiendo la API pública de PDFium.","[ ] escribir el probe en C++
+[ ] consumir la API pública del motor
+[ ] compilar
+[ ] abrir C01–C04
+[ ] render PNG a 100 % y 400 %; render correcto = salida no vacía/no blanca y dimensiones verificables [R]
+[ ] dimensiones contra pdfinfo","S00.1.01, S00.1.02","Renders correctos [R] y dimensiones coinciden con el oráculo.","Logs de build, PNGs, JSON de dimensiones (evidence/s00_1/pdfium/).","PASS/FAIL por comprobación.","P0","M","Linux","N","Bloqueador real: si falta acceso a Linux x64 real.","Backlog","Technical","Open","Not Started","Automated Test","Platform"
+
+"S00.1.06","MuPDF: build, abrir, render, dimensiones","S00.1","Humo del motor MuPDF (comprobaciones 1–4). Igual que S00.1.05.","Probe CLI mínimo de spike, no producto, escrito en C++ y consumiendo la API pública de MuPDF.","[ ] escribir el probe en C++
+[ ] consumir la API pública del motor
+[ ] compilar
+[ ] abrir C01–C04
+[ ] render PNG a 100 % y 400 %; render correcto = salida no vacía/no blanca y dimensiones verificables [R]
+[ ] dimensiones contra pdfinfo","S00.1.01, S00.1.02","Renders correctos [R] y dimensiones coinciden con el oráculo.","evidence/s00_1/mupdf/","PASS/FAIL por comprobación.","P0","M","Linux","N","Bloqueador real: si falta acceso a Linux x64 real.","Backlog","Technical","Open","Not Started","Automated Test","Platform"
+
+"S00.1.07","PDFium: texto, palabras, líneas, coordenadas","S00.1","Requisitos 4 y 5 de §31 [E] (comprobaciones 5–8).","Extraer texto y cajas mediante el probe C++ de S00.1.05. Definición operativa de TextWord: unidad de texto entregada por el motor o construida determinísticamente desde glifos, conservando texto, bbox y secuencia. Definición operativa de TextLine: grupo de TextWord con identidad de línea entregada por el motor o derivada determinísticamente desde glifos/baselines para representar la línea, sin usar esa agrupación para redefinir el orden de lectura. El algoritmo debe documentarse.","[ ] texto de C01
+[ ] words[] con word_seq
+[ ] lines[]
+[ ] coordenadas a espacio de aplicación
+[ ] documentar espacio nativo del motor
+[ ] documentar definición/algoritmo de TextWord y TextLine
+[ ] ejecutar en C01, C02, C06, C11","S00.1.05, S00.1.04","JSON por PDF con palabras, líneas y cajas. La construcción de TextWord/TextLine es determinista y reproducible.","evidence/s00_1/pdfium/.json","Datos listos para el comparador.","P0","L","Linux","N","Parcial: la parte con C11 depende del bloqueador real de S00.1.03. Bloqueador real si falta Linux x64.","Backlog","Technical","Open","Partial","Comparison","Platform"
+
+"S00.1.08","MuPDF: texto, palabras, líneas, coordenadas","S00.1","Requisitos 4 y 5 de §31 [E] (comprobaciones 5–8), con MuPDF. Igual que S00.1.07.","Extraer texto y cajas mediante el probe C++ de S00.1.06. Usar las mismas definiciones operativas de TextWord y TextLine y documentar cualquier construcción desde glifos.","[ ] texto de C01
+[ ] words[] con word_seq
+[ ] lines[]
+[ ] coordenadas a espacio de aplicación
+[ ] documentar espacio nativo del motor
+[ ] documentar definición/algoritmo de TextWord y TextLine
+[ ] ejecutar en C01, C02, C06, C11","S00.1.06, S00.1.04","JSON por PDF con palabras, líneas y cajas. La construcción de TextWord/TextLine es determinista y reproducible.","evidence/s00_1/mupdf/*.json","Datos listos para el comparador.","P0","L","Linux","N","Parcial: la parte con C11 depende del bloqueador real de S00.1.03. Bloqueador real si falta Linux x64.","Backlog","Technical","Open","Partial","Comparison","Platform"
+
+"S00.1.09","Comparador y métricas de fiabilidad (R1 [R])","S00.1","Medir texto↔coordenadas de forma objetiva (comprobación 9).","Script común para ambos motores. R1 es una definición operativa experimental de fiabilidad del backlog [R]; un fallo de R1 no sustituye el requisito [E] de §31 y debe interpretarse junto con la evidencia del spike. Orden suficiente = orden total reproducible por top, left, word_seq cuando las cajas y word_seq son fiables.","[ ] % de palabras de C01 con texto correcto (R1 [R]: ≥99 %)
+[ ] % de líneas contra oráculo (R1 [R]: ≥95 %)
+[ ] tinta en el centro de cada bbox
+[ ] hit-test del centro devuelve la misma palabra
+[ ] búsqueda de cadena → bbox de la palabra
+[ ] coordenadas ↔ píxeles ±1 px (R1 [R])
+[ ] PNG con overlay
+[ ] verificar que el orden de lectura producido es total y estable
+[ ] documentar cualquier caso donde R1 no pueda representar fielmente la evidencia","S00.1.07, S00.1.08","Tabla de métricas por motor y PDF, con los umbrales R1 marcados [R]. Un FAIL de un criterio [R] no equivale automáticamente a RECHAZADO de un requisito [E].","evidence/s00_1/metrics/","Métricas y evidencia comparables por motor.","P0","M","Cross-platform","N","","Backlog","Evidence","Open","Not Started","Comparison","None"
+
+"S00.1.10","Imágenes, identificación de páginas, determinismo","S00.1","Requisitos 6 y 7 de §31 [E] (comprobaciones 10–12).","Verificar bbox de imágenes, identidad de páginas y determinismo de la salida. Los conteos de 3 aperturas y 10 corridas son criterios experimentales [R] del backlog, no exigencias adicionales de v5.1.","[ ] bbox de imágenes en C03; limitación aceptable [R] si un motor no expone vectores, registrando exactamente qué objeto no puede exponerse
+[ ] mismo índice de página en 3 aperturas [R]
+[ ] 10 corridas con salida idéntica y word_seq estable [R]
+[ ] registrar cualquier diferencia byte-a-byte y distinguir diferencias irrelevantes de diferencias semánticas","S00.1.07, S00.1.08","Tabla por motor. Los conteos de repetición están marcados [R]. La ausencia de vectores se registra como limitación, no se inventa una reconstrucción.","evidence/s00_1/misc/","Limitaciones registradas y determinismo documentado.","P1","M","Cross-platform","N","","Backlog","Evidence","Open","Not Started","Automated Test","None"
+
+"S00.1.11","Modelo de errores","S00.1","Reportable vs fatal (§31.1, §38.87 [E]).","Abrir C08–C10 (y C07) en un proceso hijo, solo para observar. El proceso hijo es harness de spike y no producto.","[ ] registrar código, estado, handle nulo o excepción
+[ ] registrar señal fatal si ocurre
+[ ] tabla por motor y caso","S00.1.05, S00.1.06","Cada caso clasificado.","evidence/s00_1/errors.md","Contrato de errores por motor. Los fallos fatales quedan como limitación, sin recuperación [E §31.1].","P0","M","Linux","N","Bloqueador real: si falta acceso a Linux x64 real.","Backlog","Technical","Open","Not Started","Manual Observation","Platform"
+
+"S00.1.12","Rendimiento","S00.1","Datos para comparar candidatos sin convertir los umbrales en requisitos normativos.","Umbrales de rendimiento [TBD]; se registran métricas comparables. El número de repeticiones queda [TBD] y no bloquea la ejecución inicial; el informe no puede convertirlo en requisito [E] sin decisión explícita.","[ ] apertura
+[ ] primer render a 100 % y 400 %
+[ ] extracción por página
+[ ] memoria máxima
+[ ] sobre C01, C11, C12
+[ ] registrar mediana y p95
+[ ] registrar número de repeticiones utilizado
+[ ] separar mediciones de C11 como bloqueadas si C11 no está disponible","S00.1.07, S00.1.08","Tabla con mediana y p95 de repeticiones, con el número de repeticiones explícito y cualquier [TBD] conservado.","evidence/s00_1/perf.csv","Métricas comparables.","P1","M","Linux","N","Parcial: la parte con C11 depende del bloqueador real de S00.1.03. Bloqueador real si falta Linux x64.","Backlog","Evidence","Open","Partial","Measurement","Platform"
+
+"S00.1.13","Repetición en Windows x64","S00.1","Confirmar que el veredicto vale en ambas plataformas.","Repetir en Windows x64 las comprobaciones de Linux que sean necesarias para los requisitos [E]. Para evitar una exclusión silenciosa, se repiten también determinismo y errores; la política de repetición se fija aquí.","[ ] compilar ambos probes
+[ ] repetir S00.1.05–S00.1.08 con C01, C02, C11
+[ ] repetir S00.1.09 en esas métricas
+[ ] repetir S00.1.10
+[ ] repetir S00.1.11 y S00.1.12
+[ ] documentar diferencias Linux/Windows
+[ ] C11 queda bloqueado solo si C11 no está disponible","S00.1.05, S00.1.06, S00.1.07, S00.1.08, S00.1.09, S00.1.10, S00.1.11, S00.1.12","Matriz Windows completa para las comprobaciones aplicables. Si falta una plataforma, su parte queda BLOCKED.","evidence/s00_1/windows/","Diferencias Linux/Windows anotadas. BLOCKED sin Windows.","P0","L","Windows","N","Bloqueador real: si falta acceso a Windows x64 real la tarea queda BLOCKED. Parcial: la parte con C11 depende del bloqueador real de S00.1.03.","Backlog","Technical","Open","Not Started","Comparison","Platform"
+
+"S00.1.14","Poppler (contingencia condicional)","S00.1","Alternativa si falla el requisito 5 [E] en ambos motores o si empaquetar en Windows descarta alguno.","Solo se activa con ese disparador y con aprobación del usuario. Si se activa, Poppler se trata con el mismo patrón de evidencia que un candidato de motor y se amplía a requisitos 1–7 y modelo de errores.","[ ] confirmar disparador y aprobación
+[ ] repetir S00.1.05–S00.1.11 con Poppler, adaptando cada probe a su API pública
+[ ] incluir requisitos 6 y 7 y errores
+[ ] documentar si alguna utilidad del oráculo depende de Poppler
+[ ] registrar que Poppler es contingencia y no candidato principal salvo decisión explícita","S00.1.09, S00.1.13","Matriz equivalente de requisitos 1–7 y errores, o 'no activada'.","evidence/s00_1/poppler/","Tercer candidato evaluado, o 'no activada'.","P1","L","Cross-platform","Y","","Backlog","Decision","Open","Not Started","Decision","External Decision"
+
+"S00.1.15","Informe y veredicto S00.1","S00.1","Decisión de motor.","Veredicto por motor y global usando el glosario de S00.0.01. No existe R4: si varios candidatos satisfacen los requisitos [E] y las limitaciones aceptables, el informe presenta los datos y la recomendación sin ranking obligatorio; la decisión final la registra el usuario. Si ninguno satisface los requisitos [E], DETENER, documentar y proponer una alternativa concreta [E §39]. RECHAZADO se reserva a incumplimiento de requisitos [E].","[ ] matriz motor × comprobación × plataforma
+[ ] veredicto por motor según glosario
+[ ] limitaciones aceptadas y justificación
+[ ] criterios R1 [R] marcados como [R]
+[ ] recomendación basada en evidencia sin R4
+[ ] registrar decisión final del usuario
+[ ] separar explícitamente hallazgos [E] y [R]
+[ ] si Poppler fue activado, documentar la reapertura del informe y el motivo","S00.1.09, S00.1.10, S00.1.11, S00.1.12, S00.1.13 (y S00.1.14 si se activó)","Informe con veredicto claro según el glosario. No se marca APROBADO si falta evidencia obligatoria o queda un TBD que afecta un requisito [E].","evidence/s00_1/report.md","Veredicto: APROBADO, RECHAZADO, APROBADO CON LIMITACIONES o BLOCKED según las definiciones de S00.0.01.","P0","S","Cross-platform","N","","Backlog","Decision","Open","Not Started","Decision","External Decision"
+
+"S00.2.01","Fijar biblioteca de ventana/input","S00.2","Congelar el candidato.","Propuesta inicial SDL (SDL3 o SDL2) [R]. Versión [TBD]. Se prueba otra solo si falla. La ausencia total de TextInputEvent se trata según la política de backlog registrada en S00.2.11.","[ ] registrar versión y commit o paquete
+[ ] confirmar que expone eventos de tecla, foco y texto
+[ ] registrar plataforma y backend utilizado","S00.0.01","versions.md y evidencia de API.","evidence/s00_2/versions.md","Candidato fijado.","P0","XS","Cross-platform","N","","Backlog","Technical","Open","Not Started","Inspection","None"
+
+"S00.2.02","Prototipo Linux","S00.2","Base medible (§34 [E]).","Ventana + cursor + hjkl, un proceso y un hilo, sin motor PDF. Paso normal = 5 unidades y Shift+hjkl = 25, como referencia de prueba [E §10].","[ ] ventana
+[ ] cursor
+[ ] hjkl y Shift+hjkl
+[ ] presentación por CPU framebuffer
+[ ] GPU opcional (§32 lo delega al spike) [TBD]","S00.2.01","Funciona en X11 o Wayland (registrar cuál).","Fuente del spike y log de arranque (evidence/s00_2/).","Prototipo estable.","P0","M","Linux","N","Bloqueador real: si falta acceso a Linux x64 real.","Backlog","Technical","Open","Not Started","Automated Test","Platform"
+
+"S00.2.03","Prototipo Windows","S00.2","Base medible en Windows (§34 [E]). Igual que S00.2.02.","Mismo código que S00.2.02, compilado en Windows.","[ ] ventana
+[ ] cursor
+[ ] hjkl y Shift+hjkl
+[ ] presentación por CPU framebuffer
+[ ] GPU opcional (§32 lo delega al spike) [TBD]","S00.2.02","Funciona en Windows.","Log de arranque (evidence/s00_2/).","Prototipo estable.","P0","S","Windows","N","Bloqueador real: si falta acceso a Windows x64 real.","Backlog","Technical","Open","Not Started","Automated Test","Platform"
+
+"S00.2.04","Instrumentación de latencia","S00.2","Datos por evento.","Instrumentación del prototipo con CSV por evento. El tramo dequeue→fin de update→retorno de present es el proxy interno; cualquier timestamp físico queda separado.","[ ] CSV con timestamp del SO si existe
+[ ] dequeue
+[ ] fin de update
+[ ] retorno de present
+[ ] ID de frame
+[ ] modo del bucle y vsync registrados
+[ ] script de percentiles (p50/p95/p99/máx)
+[ ] registrar Hz efectivo del monitor","S00.2.02","CSV válido y percentiles calculables.","evidence/s00_2/tools/","Instrumentación lista.","P0","M","Cross-platform","N","","Backlog","Evidence","Open","Not Started","Measurement","None"
+
+"S00.2.05","Latencia por proxy en Linux","S00.2","Medir con inyección automática.","Inyección con xdotool (X11) o ydotool. El resultado se etiqueta como proxy. R2 [R] usa p99 del tramo interno desde dequeue hasta retorno de present. El umbral provisional es un periodo de refresco: 1000/Hz ms; a 60 Hz equivale a 16,7 ms.","[ ] tap j
+[ ] tap rápido
+[ ] mantener j
+[ ] mantener l
+[ ] alternar j/l
+[ ] ráfagas hjkl
+[ ] jitter y frames perdidos
+[ ] p99 calculado sobre dequeue→present
+[ ] registrar Hz medido
+[ ] definir stutter [R] como cualquier intervalo de presentación >2 periodos del Hz objetivo o frame perdido registrado","S00.2.04","p99 <= 1000/Hz ms (16,7 ms a 60 Hz) [R] y cero stutter según la definición [R]. El resultado se declara proxy, no medición física.","CSV y histogramas (evidence/s00_2/linux/).","Medido por proxy (etiquetado).","P0","M","Linux","N","Bloqueador real: si falta acceso a Linux x64 real.","Backlog","Evidence","Open","Not Started","Measurement","Platform"
+
+"S00.2.06","Latencia por proxy en Windows","S00.2","Medir con inyección automática. Igual que S00.2.05.","Inyección con SendInput. El resultado se etiqueta como proxy. R2 [R] usa el mismo tramo y criterio que Linux.","[ ] tap j
+[ ] tap rápido
+[ ] mantener j
+[ ] mantener l
+[ ] alternar j/l
+[ ] ráfagas hjkl
+[ ] jitter y frames perdidos
+[ ] p99 calculated sobre dequeue→present
+[ ] registrar Hz medido
+[ ] definir stutter [R] igual que en Linux","S00.2.03, S00.2.04","p99 <= 1000/Hz ms (16,7 ms a 60 Hz) [R] y cero stutter según la definición [R]. El resultado se declara proxy, no medición física.","CSV y histogramas (evidence/s00_2/windows/).","Medido por proxy (etiquetado).","P0","M","Windows","N","Bloqueador real: si falta acceso a Windows x64 real.","Backlog","Evidence","Open","Not Started","Measurement","Platform"
+
+"S00.2.07","Medición física extremo a extremo","S00.2","Separar lo medido físicamente de lo medido por proxy.","La medición física es necesaria para caracterizar la latencia extremo a extremo de §34, pero v5.1 no fija instrumento ni umbral. Por tanto, el método y su efecto sobre el veredicto se tratan como decisión de backlog ya resuelta: si se dispone de un método reproducible, se mide; si no, el informe puede ser APROBADO CON LIMITACIONES pero no APROBADO, porque la evidencia física exigida por §34 no está disponible.","[ ] teclado físico
+[ ] método de captura
+[ ] al menos las pruebas de tap y mantener
+[ ] etiquetar físico vs proxy
+[ ] registrar frecuencia de captura y sincronización
+[ ] si no existe medio reproducible, registrar limitación explícita
+[ ] no sustituir la medición física por el proxy","S00.2.05, S00.2.06","Tabla física/proxy. Si no hay medición física reproducible, el estado del informe queda como APROBADO CON LIMITACIONES como máximo, no APROBADO.","Capturas o grabaciones y tabla (evidence/s00_2/physical/).","Medición física o limitación explícita que impide un APROBADO pleno.","P1","M","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales.","Backlog","Evidence","Open","Not Started","Physical Measurement","Platform"
+
+"S00.2.08","Autorepeat","S00.2","Documentar el autorepeat por SO.","Medir autorepeat en ambas plataformas.","[ ] retardo y frecuencia
+[ ] configuración del SO anotada
+[ ] llegan como Press repetidos
+[ ] tecla mantenida sin pérdidas","S00.2.02, S00.2.03","Valores registrados por SO.","evidence/s00_2/autorepeat.csv","Comportamiento documentado.","P0","S","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales.","Backlog","Technical","Open","Not Started","Measurement","Platform"
+
+"S00.2.09","Pérdida de foco","S00.2","§26.8 [E].","Verificar liberación de teclas y ausencia de movimiento fantasma al perder el foco.","[ ] mantener j
+[ ] alt-tab
+[ ] evento de foco perdido recibido
+[ ] harness libera todas las teclas
+[ ] 5 s sin movimiento fantasma [R; duración experimental del backlog]","S00.2.02, S00.2.03","Cero movimiento fantasma durante la ventana de observación definida [R].","Log con posiciones y timestamps (evidence/s00_2/focus/).","PASS/FAIL por plataforma.","P0","S","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales.","Backlog","Technical","Open","Not Started","Automated Test","Platform"
+
+"S00.2.10","KeyEvent","S00.2","Eventos lógicos con modificadores exactos [E §8.4, §20.1].","Validar KeyEvent por separado de TextInputEvent.","[ ] tecla lógica y Press/Release
+[ ] Shift, Ctrl, Alt, Meta reportados por separado
+[ ] Ctrl+J distinto de j
+[ ] AltGr reportado como Ctrl+Alt o documentar la diferencia
+[ ] Shift+h distinguible de h","S00.2.02, S00.2.03","Tabla evento → resultado por SO y layout.","evidence/s00_2/keyevents.csv","KeyEvent viable, o limitaciones.","P0","M","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales.","Backlog","Technical","Open","Not Started","Manual Observation","Platform"
+
+"S00.2.11","TextInputEvent (canal separado)","S00.2","§20.1 [E].","Validar el canal de texto confirmado, separado de KeyEvent. Política de backlog: la ausencia total del canal en un SO implica RECHAZADO para esa biblioteca porque SEARCH depende de TextInputEvent y §30 exige su exposición; no se permiten heurísticas sobre KeyEvent. Una limitación parcial de IME/layout puede admitirse como APROBADO CON LIMITACIONES solo si el canal separado existe, SEARCH básico sigue siendo funcional y la limitación queda reproducida y accepted.","[ ] layout US
+[ ] dead key (´ + e → é)
+[ ] layout con AltGr (ES o DE)
+[ ] IME (CJK) confirmando
+[ ] llega como texto UTF-8 separado y puede traer varios code points
+[ ] verificar que hjkl continúa como KeyEvent con IME activo [R; prueba adicional]
+[ ] distinguir ausencia total de limitación parcial
+[ ] registrar exactamente qué funcionalidad queda degradada","S00.2.02, S00.2.03","Canal separado en ambos SO. Ausencia total en un SO = RECHAZADO por política de backlog. Limitación parcial de IME/layout = APROBADO CON LIMITACIONES solo si SEARCH básico sigue operativo y la limitación es aceptada.","Log de eventos y capturas (evidence/s00_2/textinput/).","Tabla por SO, layout e IME.","P0","M","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales.","Backlog","Technical","Open","Not Started","Manual Observation","Platform"
+
+"S00.2.12","Informe y veredicto S00.2","S00.2","Decisión de biblioteca de ventana/input y presentación.","Consolidar resultados. La medición física S00.2.07 es obligatoria para un APROBADO pleno; si no existe, el máximo permitido es APROBADO CON LIMITACIONES. Un fallo de R2 [R] no equivale automáticamente a RECHAZADO de un requisito [E].","[ ] tabla de resultados
+[ ] umbral R2 [R] marcado como [R]
+[ ] medición física (S00.2.07) registrada como realizada o como limitación no disponible
+[ ] decisión de biblioteca y presentación
+[ ] si hay lag: evaluar en el orden de §34 [E] sin cambiar la arquitectura
+[ ] separar explícitamente hallazgos [E] y [R]
+[ ] aplicar glosario de S00.0.01
+[ ] no marcar APROBADO si falta medición física","S00.2.05, S00.2.06, S00.2.08, S00.2.09, S00.2.10, S00.2.11, S00.2.07","Informe con veredicto claro según el glosario de S00.0.01.","evidence/s00_2/report.md","Veredicto: APROBADO, RECHAZADO, APROBADO CON LIMITACIONES o BLOCKED según evidencia y política del backlog.","P0","S","Cross-platform","N","","Backlog","Decision","Open","Not Started","Decision","External Decision"
+
+"S00.3.01","Inventario de toolchain y baseline","S00.3","Fijar entornos de compilación.","Baseline C++17 (decidido por el usuario). Win x64 y Linux x64; macOS y ARM64 fuera de esta validación.","[ ] versiones de MSVC, gcc, clang, CMake y linker/runtime [TBD]
+[ ] baseline C++17 [decidido]
+[ ] Win x64 y Linux x64 (macOS/ARM64 fuera)","S00.0.01","toolchains.md completo.","evidence/s00_3/toolchains.md","Tabla de toolchains.","P0","XS","Cross-platform","N","","Backlog","Evidence","Open","Not Started","Inspection","None"
+
+"S00.3.02","Build Linux x64 (C++17, estático y dinámico)","S00.3","Humo del motor finalista + biblioteca de S00.2 en un ejecutable.","App mínima que abre un PDF y renderiza a una superficie, con CMake. El motor finalista debe estar designado en S00.1.15 antes de ejecutar este issue.","[ ] registrar motor finalista elegido en S00.1.15
+[ ] build limpio
+[ ] variante estática
+[ ] variante dinámica
+[ ] script reproducible","S00.1.15, S00.2.12, S00.3.01","Compila y corre.","Logs y CMakeCache (evidence/s00_3/linux/).","Modos de enlace viables en Linux.","P0","M","Linux","N","Bloqueador real: si falta acceso a Linux x64 real.","Backlog","Technical","Open","Not Started","Build","Platform"
+
+"S00.3.03","Build Windows x64 (C++17, estático y dinámico)","S00.3","Humo del motor finalista + biblioteca de S00.2 en un ejecutable. Igual que S00.3.02.","App mínima que abre un PDF y renderiza a una superficie, con CMake. Igual que S00.3.02.","[ ] registrar motor finalista elegido en S00.1.15
+[ ] build limpio
+[ ] variante estática
+[ ] variante dinámica
+[ ] script reproducible","S00.1.15, S00.2.12, S00.3.01","Compila y corre.","Logs y CMakeCache (evidence/s00_3/windows/).","Modos de enlace viables en Windows.","P0","M","Windows","N","Bloqueador real: si falta acceso a Windows x64 real.","Backlog","Technical","Open","Not Started","Build","Platform"
+
+"S00.3.04","Inspección de dependencias Linux","S00.3","Documentar dependencias y runtime en Linux.","Inspeccionar el ejecutable de S00.3.02.","[ ] ldd
+[ ] readelf -d (RPATH/$ORIGIN)
+[ ] objdump -T (GLIBCXX/GLIBC, mínimo requerido)
+[ ] registrar si cada binario relevante es propio o precompilado","S00.3.02","Salidas de comandos guardadas.","Salidas de comandos (evidence/s00_3/linux/).","Dependencias y mínimo de runtime documentados.","P0","S","Linux","N","Bloqueador real: si falta acceso a Linux x64 real.","Backlog","Evidence","Open","Not Started","Inspection","Platform"
+
+"S00.3.05","Inspección de dependencias Windows","S00.3","Documentar dependencias y runtime en Windows.","Inspeccionar el ejecutable de S00.3.03.","[ ] dumpbin /dependents
+[ ] runtime /MD vs /MT consistente con las dependencias
+[ ] DLLs junto al ejecutable
+[ ] registrar si cada binario relevante es propio o precompilado","S00.3.03","Salidas de comandos guardadas.","Salidas de comandos (evidence/s00_3/windows/).","Dependencias y runtime documentados.","P0","S","Windows","N","Bloqueador real: si falta acceso a Windows x64 real.","Backlog","Evidence","Open","Not Started","Inspection","Platform"
+
+"S00.3.06","Reubicación sin instalación global","S00.3","§35 [E].","Reubicar y ejecutar sin el motor instalado globalmente.","[ ] copiar a otra carpeta
+[ ] ejecutar en VM o contenedor sin el motor instalado
+[ ] sin dependencia global no prevista","S00.3.04, S00.3.05","Arranca y renderiza.","Logs y descripción del entorno limpio (evidence/s00_3/relocation/).","Confirmación de que no hay dependencia global no prevista.","P0","S","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales.","Backlog","Technical","Open","Not Started","Automated Test","Platform"
+
+"S00.3.07","Registro de proceso e hilos","S00.3","Contrato de un solo proceso [E §30].","Registrar procesos e hilos del ejecutable.","[ ] un solo proceso de aplicación
+[ ] número de hilos anotado (incluidos los de bibliotecas, solo informativo)","S00.3.02, S00.3.03","Un solo proceso de aplicación; hilos registrados.","Capturas de ps y Task Manager (evidence/s00_3/process/).","Registro documentado.","P1","XS","Win+Linux","N","Bloqueador real: si falta acceso a Windows x64 o Linux x64 reales.","Backlog","Evidence","Open","Not Started","Inspection","Platform"
+
+"S00.3.08","C++20 (condicional)","S00.3","Elegir C++20 solo con justificación técnica [E §30.2].","Solo si una dependencia requiere o recomienda C++20 y existe justificación técnica documentada; sin ello, C++17 permanece como baseline [E §30.2].","[ ] justificar si alguna dependencia requiere o recomienda C++20
+[ ] documentar la dependencia y evidencia
+[ ] repetir build y humo con C++20 solo si se activa","S00.3.02, S00.3.03","Justificación documentada y build con C++20 funcionando si se activa, o 'no requerido/recomendado'.","Justificación y logs (evidence/s00_3/cpp20/).","C++20 elegido con causa, o 'no requerido'.","P1","S","Cross-platform","Y","","Backlog","Decision","Open","Not Started","Decision","External Decision"
+
+"S00.3.09","Informe y decisión S00.3","S00.3","Decisión de estándar y modo de enlace.","Consolidar resultados. Si el motor finalista no es PDFium, §35 debe reescribirse antes de cerrar G0 en los mismos términos y solo con hechos medidos en S00.3. El mecanismo formal de cambio será un registro explícito de cambio de especificación en evidence/g0_decision.md y una revisión de la especificación/backlog; nunca se modifica silenciosamente.","[ ] matriz plataforma × estándar × enlace
+[ ] estándar decidido
+[ ] modo de enlace recomendado
+[ ] problemas de ABI/runtime
+[ ] registrar explícitamente si cada binario relevante es precompilado con otro compilador: sí/no/N/A
+[ ] separar explícitamente hallazgos [E] y [R]
+[ ] si motor finalista != PDFium, preparar propuesta de reescritura de §35 con evidencia
+[ ] no cerrar G0 hasta aprobar el cambio de §35 si aplica","S00.3.04, S00.3.05, S00.3.06, S00.3.07, S00.3.08","Informe con veredicto claro y, si aplica, propuesta explícita de modificación de §35. No se cierra G0 con"
