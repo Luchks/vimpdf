@@ -38,6 +38,32 @@ def get_issue(number):
     ])
 
 
+def parse_issue_sections(body):
+    sections = {}
+    current_section = None
+    current_lines = []
+
+    for line in body.splitlines():
+        if line.startswith("## "):
+            if current_section is not None:
+                sections[current_section] = "\n".join(
+                    current_lines
+                ).strip()
+
+            current_section = line[3:].strip()
+            current_lines = []
+        elif current_section is not None:
+            current_lines.append(line)
+
+    if current_section is not None:
+        sections[current_section] = "\n".join(
+            current_lines
+        ).strip()
+
+    return sections
+
+
+
 def get_project_items():
     data = gh_json([
         "gh", "project", "item-list",
@@ -104,9 +130,7 @@ def find_project_item(issue_number):
     return None
 
 
-
-
-def show_issue(issue, item):
+def show_issue(issue, item, sections):
     print()
     print(f'Issue #{issue["number"]}: {issue["title"]}')
     print(f'Issue State: {issue["state"]}')
@@ -114,8 +138,24 @@ def show_issue(issue, item):
     print()
 
     print("Requirements:")
-    print(issue.get("body", "—"))
     print()
+
+    section_order = [
+        "Objective",
+        "Description",
+        "Checklist",
+        "Acceptance",
+        "Evidence",
+        "Expected Result",
+    ]
+
+    for section_name in section_order:
+        content = sections.get(section_name)
+
+        if content:
+            print(f"{section_name}:")
+            print(content)
+            print()
 
     print("Project:")
     print(f'  Status:            {item.get("status", "—")}')
@@ -158,6 +198,60 @@ def main():
     )
 
     parser.add_argument(
+        "--priority",
+        choices=["P0", "P1", "P2"],
+        help="Actualiza Priority.",
+    )
+
+    parser.add_argument(
+        "--size",
+        choices=["XS", "S", "M", "L", "XL"],
+        help="Actualiza Size.",
+    )
+
+    parser.add_argument(
+        "--spike",
+        choices=["S00.0", "S00.1", "S00.2", "S00.3"],
+        help="Actualiza Spike.",
+    )
+
+    parser.add_argument(
+        "--platform",
+        choices=["Win+Linux", "Linux", "Windows", "Cross-platform"],
+        help="Actualiza Platform.",
+    )
+    parser.add_argument(
+        "--conditional",
+        choices=["Y", "N"],
+        help="Actualiza Conditional.",
+    )
+
+    parser.add_argument(
+        "--ambiguity-type",
+        choices=[
+            "None",
+            "Evidence",
+            "Technical",
+            "Scope",
+            "Dependency",
+            "Other",
+        ],
+        help="Actualiza Ambiguity Type.",
+    )
+    parser.add_argument(
+        "--verification-mode",
+        choices=[
+            "Inspection",
+            "Documentation",
+            "Test",
+            "Measurement",
+            "Build",
+            "Runtime",
+        ],
+        help="Actualiza Verification Mode.",
+    )
+
+    parser.add_argument(
         "--ambiguity-status",
         choices=["N/A", "Open", "Resolved"],
         help="Actualiza Ambiguity Status.",
@@ -186,6 +280,7 @@ def main():
     args = parser.parse_args()
 
     issue = get_issue(args.issue)
+    sections = parse_issue_sections(issue.get("body", ""))
     item = find_project_item(args.issue)
 
     if not item:
@@ -197,16 +292,30 @@ def main():
 
     requested_changes = {
         "Status": args.status,
+        "Priority": args.priority,
         "Ambiguity Status": args.ambiguity_status,
         "Evidence State": args.evidence_state,
         "Blocker Type": args.blocker_type,
+        "Size": args.size,
+        "Spike": args.spike,
+        "Platform": args.platform,
+        "Conditional": args.conditional,
+        "Ambiguity Type": args.ambiguity_type,
+        "Verification Mode": args.verification_mode,
     }
 
     item_keys = {
         "Status": "status",
+        "Priority": "priority",
         "Ambiguity Status": "ambiguity Status",
         "Evidence State": "evidence State",
         "Blocker Type": "blocker Type",
+        "Size": "size",
+        "Spike": "spike",
+        "Platform": "platform",
+        "Conditional": "conditional",
+        "Ambiguity Type": "ambiguity Type",
+        "Verification Mode": "verification Mode",
     }
 
     changes = []
@@ -267,7 +376,7 @@ def main():
         item = find_project_item(args.issue)
 
 
-    show_issue(issue, item)
+    show_issue(issue, item,sections)
 
 
 if __name__ == "__main__":
