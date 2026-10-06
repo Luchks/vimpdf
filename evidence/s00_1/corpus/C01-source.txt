@@ -1,0 +1,13 @@
+C01 - Documento de una columna
+
+Este documento forma parte del corpus de prueba S00.1.
+
+El contenido textual de esta pagina es conocido de antemano.
+Su proposito es permitir comparar el texto extraido del PDF
+con una fuente de referencia controlada.
+
+Primera linea de prueba.
+Segunda linea de prueba.
+Tercera linea de prueba.
+
+Fin del documento C01.
