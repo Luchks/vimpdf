@@ -306,6 +306,20 @@ def main():
         help="Actualiza End Date en formato YYYY-MM-DD.",
     )
 
+    issue_state_group = parser.add_mutually_exclusive_group()
+
+    issue_state_group.add_argument(
+        "--close",
+        action="store_true",
+        help="Cierra el Issue en GitHub.",
+    )
+
+    issue_state_group.add_argument(
+        "--reopen",
+        action="store_true",
+        help="Reabre el Issue en GitHub.",
+    )
+
     args = parser.parse_args()
 
     issue = get_issue(args.issue)
@@ -351,7 +365,26 @@ def main():
         "End Date": "end Date",
     }
 
+    issue_state_change = None
+
+    if args.close:
+        if issue["state"] == "CLOSED":
+            print("Issue ya está CLOSED. No se modifica.")
+        else:
+            issue_state_change = ("Issue State", issue["state"], "CLOSED")
+
+    elif args.reopen:
+        if issue["state"] == "OPEN":
+            print("Issue ya está OPEN. No se modifica.")
+        else:
+            issue_state_change = ("Issue State", issue["state"], "OPEN")
+
+
     changes = []
+
+    if issue_state_change:
+        changes.append(issue_state_change)
+
 
     for field_name, new_value in requested_changes.items():
         if new_value is None:
@@ -388,6 +421,34 @@ def main():
 
 
         for field_name, _, new_value in changes:
+            if field_name == "Issue State":
+                if new_value == "CLOSED":
+                    run(
+                        [
+                            "gh",
+                            "issue",
+                            "close",
+                            str(args.issue),
+                            "--repo",
+                            REPO,
+                        ]
+                    )
+                else:
+                    run(
+                        [
+                            "gh",
+                            "issue",
+                            "reopen",
+                            str(args.issue),
+                            "--repo",
+                            REPO,
+                        ]
+                    )
+
+                print(f"Issue State actualizado → {new_value}")
+                continue
+
+
             field = fields.get(field_name)
 
             if not field:
@@ -417,6 +478,7 @@ def main():
 
 
         # Volver a consultar GitHub para verificar el resultado real.
+        issue = get_issue(args.issue)
         item = find_project_item(args.issue)
 
 
