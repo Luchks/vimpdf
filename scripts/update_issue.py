@@ -120,6 +120,23 @@ def set_single_select(item_id, project_id, field, value):
     ])
 
 
+def set_date(item_id, project_id, field, value):
+    run(
+        [
+            "gh",
+            "project",
+            "item-edit",
+            "--id",
+            item_id,
+            "--project-id",
+            project_id,
+            "--field-id",
+            field["id"],
+            "--date",
+            value,
+        ]
+    )
+
 def find_project_item(issue_number):
     for item in get_project_items():
         content = item.get("content") or {}
@@ -169,6 +186,8 @@ def show_issue(issue, item, sections):
     print(f'  Evidence State:    {item.get("evidence State", "—")}')
     print(f'  Verification Mode: {item.get("verification Mode", "—")}')
     print(f'  Blocker Type:      {item.get("blocker Type", "—")}')
+    print(f'  Start Date:        {item.get("start Date", "—")}')
+    print(f'  End Date:          {item.get("end Date", "—")}')
     print()
 
 
@@ -277,6 +296,16 @@ def main():
         help="Actualiza Blocker Type.",
     )
 
+    parser.add_argument(
+        "--start-date",
+        help="Actualiza Start Date en formato YYYY-MM-DD.",
+    )
+
+    parser.add_argument(
+        "--end-date",
+        help="Actualiza End Date en formato YYYY-MM-DD.",
+    )
+
     args = parser.parse_args()
 
     issue = get_issue(args.issue)
@@ -302,6 +331,8 @@ def main():
         "Conditional": args.conditional,
         "Ambiguity Type": args.ambiguity_type,
         "Verification Mode": args.verification_mode,
+        "Start Date": args.start_date,
+        "End Date": args.end_date,
     }
 
     item_keys = {
@@ -316,6 +347,8 @@ def main():
         "Conditional": "conditional",
         "Ambiguity Type": "ambiguity Type",
         "Verification Mode": "verification Mode",
+        "Start Date": "start Date",
+        "End Date": "end Date",
     }
 
     changes = []
@@ -353,6 +386,7 @@ def main():
         project = get_project()
         fields = get_project_fields()
 
+
         for field_name, _, new_value in changes:
             field = fields.get(field_name)
 
@@ -363,20 +397,30 @@ def main():
                 )
                 sys.exit(1)
 
-            set_single_select(
-                item["id"],
-                project["id"],
-                field,
-                new_value,
-            )
+            if field_name in ("Start Date", "End Date"):
+                set_date(
+                    item["id"],
+                    project["id"],
+                    field,
+                    new_value,
+                )
+            else:
+                set_single_select(
+                    item["id"],
+                    project["id"],
+                    field,
+                    new_value,
+                )
 
             print(f"{field_name} actualizado → {new_value}")
+
+
 
         # Volver a consultar GitHub para verificar el resultado real.
         item = find_project_item(args.issue)
 
 
-    show_issue(issue, item,sections)
+    show_issue(issue, item, sections)
 
 
 if __name__ == "__main__":
